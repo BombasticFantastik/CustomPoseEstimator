@@ -2,7 +2,23 @@ import cv2
 from torchvision import transforms
 import torch 
 from model import SkeletNet
-from visualization import img2skelet
+from visualization import show_result
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import numpy as np
+import cv2
+
+def figure_to_array(fig):
+    fig.canvas.draw()
+    rgba_buffer = fig.canvas.buffer_rgba()
+    img_array = np.array(rgba_buffer)
+    return cv2.cvtColor(img_array, cv2.COLOR_RGBA2BGR)
+
+
+
 
 model=SkeletNet().eval()
 weights_dict=torch.load('/home/artemybombastic/MyGit/SkeletonNet/CustomPoseEstimatorData/weight.pth',weights_only=True)
@@ -26,12 +42,24 @@ while camera.isOpened():
     tensor_frame=trans(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     with torch.no_grad():
         pred=model(tensor_frame.unsqueeze(0))
-        pred=img2skelet(tensor_frame,pred[0])
+        figure=show_result(tensor_frame,pred[0])
+
+
+    # Конвертируем фигуру в картинку
+    plot_img = figure_to_array(figure)
+
+
+
+
+
+
+    
         
 
 
-    result = cv2.cvtColor(pred, cv2.COLOR_RGB2BGR)
-    cv2.imshow('some',result)
+    # Показываем через OpenCV
+    cv2.imshow('Matplotlib in OpenCV', plot_img)
+    
 
     if cv2.waitKey(1) == ord('q'):
         break
