@@ -1,0 +1,4 @@
+img_path: '../CustomPoseEstimatorData/images'
+label_path: ../CustomPoseEstimatorData/labels.json
+device: cuda
+eval_lenght: 3000
