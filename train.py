@@ -12,8 +12,8 @@ option_path='config.yaml'
 with open(option_path,'r') as file_option:
     files_option=yaml.safe_load(file_option)
 
-img_path=files_option['img_path']
-label_path=files_option['label_path']
+img_path=files_option['paths']['img']
+label_path=files_option['paths']['label']
 eval_lenght=files_option['eval_lenght']
 device=files_option['device']
 
@@ -28,10 +28,10 @@ loss_fn=MSELoss()
 
 
 #убрать прямой путь
-if os.path.isfile('/home/artemybombastic/MyGit/SkeletonNet/CustomPoseEstimatorData/weight.pth'):
-    weights_dict=torch.load('/home/artemybombastic/MyGit/SkeletonNet/CustomPoseEstimatorData/weight.pth',weights_only=True)
+if os.path.isfile(files_option['paths']['weights']):
+    weights_dict=torch.load(files_option['paths']['weights'],weights_only=True)
     model.load_state_dict(weights_dict)
     print('Веса обнаружены')
 
-Train(epochs=10,model=model,dataloader=train_pose_dataloader,optimizer=optimizer,loss_fn=loss_fn,device=device)
+Train(epochs=5,model=model,dataloader=train_pose_dataloader,optimizer=optimizer,loss_fn=loss_fn,device=device)
 

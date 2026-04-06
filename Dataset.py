@@ -51,13 +51,25 @@ class PoseDataset(Dataset):
         return torch.from_numpy(heatmaps)
 
 
-    def __getitem__(self,idx):
+    def __getitem__(self,idx,augm_p=0.7):
         label=self.labels[idx]
+
         img=Image.open(self.images[idx])
 
         img_center=np.array(label['objpos'])
         img_scale=label['scale_provided']
         crop_size=img_scale*200
+
+        #аугментация
+        if random.random()<augm_p:
+            offset_x=random.uniform(-0.25,0.25)*crop_size
+            offset_y=random.uniform(-0.25,0.25)*crop_size
+            img_center[0]+=offset_x
+            img_center[1]+=offset_y
+
+            crop_size=crop_size*random.uniform(0.5,1.2)
+
+        #конец аугментации
         
         left=img_center[0]-crop_size/2
         top=img_center[1]-crop_size/2
@@ -73,6 +85,15 @@ class PoseDataset(Dataset):
         joints=np.array(label['joint_self'])
         joints[:,0]-=left
         joints[:,1]-=top
+
+        #убираем не попавшие суставы
+
+        for i in range(len(joints)):
+                if (joints[i, 0] < 0 or joints[i, 0] >= crop_size or 
+                    joints[i, 1] < 0 or joints[i, 1] >= crop_size):
+                    joints[i, 2] = 0.0
+
+        #заканчиваем убирать не попавшие суставы
 
         final_w,final_h=img_crop.size
         tensor_img=self.trans(img_crop)
