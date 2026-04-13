@@ -15,4 +15,4 @@ def Train(epochs,model,dataloader,optimizer,loss_fn,device):
     
             pbar.set_description(f'{loss_item}')
             optimizer.step()
-        torch.save(model.state_dict(),'/home/artemybombastic/MyGit/SkeletonNet/CustomPoseEstimatorData/weight.pth')
+        torch.save(model.state_dict(),'/home/artemybombastic/MyGit/SkeletonNet/CustomPoseEstimatorData/weights.pth')
