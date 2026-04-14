@@ -1,6 +1,6 @@
 paths:
   img: ../CustomPoseEstimatorData/images
   label: ../CustomPoseEstimatorData/labels.json
-  weights: /home/artemybombastic/MyGit/SkeletonNet/CustomPoseEstimatorData/weight.pth
+  weights: /home/artemybombastic/MyGit/SkeletonNet/CustomPoseEstimatorData/weights.pth
 device: cuda
 eval_lenght: 3000

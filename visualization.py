@@ -23,7 +23,7 @@ def show_result(img,heatmap):
     img=img.permute(1,2,0).detach().cpu().numpy()
     full_heatmap=torch.max(heatmap,dim=0)[0].detach().cpu().numpy()
 
-    px,py=get_keypoints_from_heatmaps(heatmap)
+    px,py=get_keypoints_from_heatmaps(heatmap,treshold=0.2)
 
     #масштабирование
     scale=img.shape[0]/heatmap.shape[1]#хз
@@ -51,6 +51,16 @@ def show_result(img,heatmap):
     plt.subplot(1,5,4)
     plt.title('Предсказание костей')
     plt.imshow(img)
+    
+
+    for idx in mpi_combo:
+        #if idx[0]<len(px) and idx[1]<len(py):
+        if px[idx[0]]==0 or px[idx[1]]==0:
+            continue
+        else:
+            plt.plot([px[idx[0]],px[idx[1]]],[py[idx[0]],py[idx[1]]],linewidth=2,color='lime',alpha=0.7)#alpha=0.7,color='lime
+
+    return figure
     
 
     for idx in mpi_combo:

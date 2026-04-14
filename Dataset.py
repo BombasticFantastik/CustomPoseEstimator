@@ -5,6 +5,7 @@ import os
 from PIL import Image
 import torch
 import numpy as np
+import random
 
 class PoseDataset(Dataset):
     def __init__(self,img_path,label_path,img_size,heatmap_size,sigma):
@@ -60,14 +61,16 @@ class PoseDataset(Dataset):
         img_scale=label['scale_provided']
         crop_size=img_scale*200
 
+        rotate_angle=0
+
         #аугментация
         if random.random()<augm_p:
             offset_x=random.uniform(-0.25,0.25)*crop_size
             offset_y=random.uniform(-0.25,0.25)*crop_size
             img_center[0]+=offset_x
             img_center[1]+=offset_y
-
             crop_size=crop_size*random.uniform(0.5,1.2)
+            rotate_angle=random.uniform(-30,30)
 
         #конец аугментации
         
@@ -77,6 +80,9 @@ class PoseDataset(Dataset):
         bottom=top+crop_size
 
         img_crop=img.crop((left,top,right,bottom))
+
+        if rotate_angle!=0:
+            img_crop=img_crop.rotate(rotate_angle,resample=Image.BILINEAR)
         #orig_w,orig_h=img.size
         #tensor_img=self.trans(img)
         
@@ -85,6 +91,17 @@ class PoseDataset(Dataset):
         joints=np.array(label['joint_self'])
         joints[:,0]-=left
         joints[:,1]-=top
+
+        #убираем сустаы если не попали
+        if rotate_angle != 0:
+            rad = np.deg2rad(-rotate_angle) 
+            cx, cy = crop_size / 2, crop_size / 2
+            x = joints[:, 0] - cx
+            y = joints[:, 1] - cy
+            new_x = x * np.cos(rad) - y * np.sin(rad) + cx
+            new_y = x * np.sin(rad) + y * np.cos(rad) + cy
+            joints[:, 0] = new_x
+            joints[:, 1] = new_y
 
         #убираем не попавшие суставы
 

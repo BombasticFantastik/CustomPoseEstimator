@@ -7,6 +7,8 @@ from torch.nn import MSELoss
 import os
 from Loop import Train
 import torch
+from tqdm import tqdm
+from metric import PCK_accuracy
 
 option_path='config.yaml'
 with open(option_path,'r') as file_option:
@@ -18,29 +20,20 @@ eval_lenght=files_option['eval_lenght']
 device=files_option['device']
 
 pose_data=PoseDataset(img_path=img_path,label_path=label_path,img_size=256,heatmap_size=64,sigma=2)
-train_pose_data=Subset(dataset=pose_data,indices=range(len(pose_data)-eval_lenght))
 test_pose_data=Subset(dataset=pose_data,indices=range(len(pose_data)-eval_lenght,len(pose_data)))
-
-train_pose_dataloader=DataLoader(dataset=train_pose_data,batch_size=16,shuffle=False,drop_last=True)
 test_pose_dataloader=DataLoader(dataset=test_pose_data,batch_size=16,shuffle=True,drop_last=True)
 
-
 model=SkeletNet().to(device)
-optimizer=Adam(model.parameters())
-loss_fn=MSELoss()
 
-
-#убрать прямой путь
 if os.path.isfile(files_option['paths']['weights']):
     weights_dict=torch.load(files_option['paths']['weights'],weights_only=True)
     model.load_state_dict(weights_dict)
     print('Веса обнаружены')
 
-Train(epochs=5,model=model,
-      dataloader=train_pose_dataloader,
-      optimizer=optimizer,
-      loss_fn=loss_fn,
-      test_dataloader=test_pose_dataloader,
-      device=device,
-      weights_path=files_option['paths']['weights'])
-
+#оцениваем качество
+full_accuracy=[]
+for batch in (pbar:=tqdm(test_pose_dataloader)):
+    pred=model(batch['img'].to(device))
+    for i in range(16):
+        full_accuracy.append(PCK_accuracy(batch['img'][i],pred[i],batch['label'][i]))
+print(sum(full_accuracy)/len(full_accuracy))
